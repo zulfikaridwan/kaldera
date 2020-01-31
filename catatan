@@ -1,0 +1,32 @@
+$table->string('nama', 100);
+            $table->string('email', 100)->unique('email_unique');
+            $table->string('password', 100);
+            $table->enum('role', array('pembeli', 'penjual'))->default('pembeli');
+
+
+            if(Gate::denies('read-book')){
+            return response()->json([
+                'succes' => false,
+                'status' => 403,
+                'message' => 'You Are unauthorized'
+            ], 403);
+        }
+
+        $transaction = Transaction::where('user_id_pembeli', Auth::user()->id)->first();
+        if(!$transaction){
+			$transaction = new Transaction;
+            $transaction->user_id_pembeli = Auth::user()->id;
+            // $transaction->total = book();
+        }
+        // $transaction = Transaction::where('harga', 'book');
+        // if(!$transaction){
+		// 	$transaction = new Transaction;
+		// 	$transaction->total = book()->harga;
+        // }
+        // $total = Transaction::where('harga', 'book');
+
+        $transaction->tgl_faktur = $request->input('tgl_faktur');
+		$transaction->book_id = $request->input('book_id');
+        $transaction->total = $request->input('harga', 'book');
+
+        $transaction->save();
